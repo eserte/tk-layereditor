@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditor.pm,v 1.3 1999/06/29 00:10:17 eserte Exp $
+# $Id: LayerEditor.pm,v 1.4 1999/07/30 23:36:08 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999 Slaven Rezic. All rights reserved.
@@ -40,6 +40,8 @@ sub Populate {
     $w->SUPER::Populate($args);
     $w->title('Layer-Editor');
     
+    my $f = $w->Component('Frame' => 'buttons'
+			 )->pack(-fill => 'x', -side => "bottom");
     my $c = $w->Scrolled('Canvas', -scrollbars => 'osoe',
 			 -relief => 'sunken',
 			 -bd => 2,
@@ -65,21 +67,25 @@ sub Populate {
 
     $c->bind('layeronoff', '<ButtonPress-1>' => sub { toggle_visibility($w) });
 
-    my $f = $w->Component('Frame' => 'buttons'
-			 )->pack(-fill => 'x');
-    $f->Button(-command => [$w, 'OK'],
-	       -text => 'OK')->pack(-side => 'left',
-				    -expand => 1,
-				    -fill => 'x'
-				   );
-    $f->Button(-command => [$w, 'Apply'],
-	       -text => 'Übernehmen')->pack(-side => 'left',
-				       -expand => 1,
-				       -fill => 'x');
-    $f->Button(-command => [$w, 'Cancel'],
-	       -text => 'Abbrechen')->pack(-side => 'left',
+    if (delete $args->{'buttons'}) {
+	$f->Button(-command => [$w, 'OK'],
+		   -text => 'OK')->pack(-side => 'left',
 					-expand => 1,
-					-fill => 'x');
+					-fill => 'x'
+					);
+	$f->Button(-command => [$w, 'Apply'],
+		   -text => 'Übernehmen')->pack(-side => 'left',
+						-expand => 1,
+						-fill => 'x');
+	$f->Button(-command => [$w, 'Cancel'],
+		   -text => 'Abbrechen')->pack(-side => 'left',
+					       -expand => 1,
+					       -fill => 'x');
+    } else {
+	$f->Button(-command => [$w, 'destroy'],
+		   -text => 'Schließen')->pack(-fill => 'x');
+    }
+
     $w->ConfigSpecs
       (
        -visibilitychange  => ['CALLBACK',undef,undef,undef],
@@ -110,7 +116,7 @@ sub reorder {
     }
     splice @{$w->{Items}}, $newpos, 0, $swap_elem;
     $w->add(@{$w->{Items}});
-    $w->Callback(-orderchange);
+    $w->Callback(-orderchange => $w, $w->{Items});
 }
 
 sub add {
@@ -143,12 +149,18 @@ sub add {
 	} else {
 	    $c->raise($offid, $onid);
 	}
-	$c->createImage($x, $y,
-			-image => $p, -anchor => 'nw',
-			-tags => ['layeritem', "layeritem-$i"]);
-	$y += _max($p->height, $layereye_height) + 2*2;
-	if ($p->width > $max_width) {
-	    $max_width = $p->width;
+	my $p_height = 0;
+	my $p_width = 0;
+	if ($p) {
+	    $c->createImage($x, $y,
+			    -image => $p, -anchor => 'nw',
+			    -tags => ['layeritem', "layeritem-$i"]);
+	    $p_height = $p->height;
+	    $p_width = $p->width;
+	}
+	$y += _max($p_height, $layereye_height) + 2*2;
+	if ($p_width > $max_width) {
+	    $max_width = $p_width;
 	}
 	$i++;
     }
@@ -162,7 +174,13 @@ sub add {
 	my $id = $c->createText($max_width, $y[$i],
 				-text => $l, -anchor => 'nw',
 				-tags => ['layeritem', "layeritem-$i"]);
-	my $this_width = $c->fontMeasure($c->itemcget($id, -font), $l);
+	my $this_width;
+	eval {
+	    $this_width = $c->fontMeasure($c->itemcget($id, -font), $l);
+	};
+	if ($@ || !defined $this_width) { # for 402.xxx compatibility
+	    $this_width = 12;
+	}
 	if ($this_width > $txt_width) {
 	    $txt_width = $this_width;
 	}
@@ -204,12 +222,16 @@ sub StartDrag {
     return 1 if (!@t || $t[0] ne 'layeritem' || $t[1] !~ /^layeritem-(\d+)/);
     my $inx = $1;
     $top->{'DragItem'} = $inx;
-    $token->configure(-image => $top->{'ItemsPhoto'}[$inx]);
+    if ($top->{'ItemsPhoto'}[$inx]) {
+	$token->configure(-image => $top->{'ItemsPhoto'}[$inx]);
+    } else {
+	$token->configure(-text => $top->{Items}[$inx]);
+    }
     $w->{'Dragging'} = $token;
     $token->MoveToplevelWindow($X,$Y);
     $token->raise;
     $token->deiconify;
-    $token->FindSite($X,$Y);
+    $token->FindSite($X,$Y,$e);
 }
 
 sub Motion {
