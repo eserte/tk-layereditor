@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditorCore.pm,v 1.5 2001/12/04 22:08:20 eserte Exp $
+# $Id: LayerEditorCore.pm,v 1.6 2001/12/04 22:11:11 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
@@ -204,7 +204,8 @@ sub Motion {
     return unless defined $inx;
     my $y_ref = $top->{ItemsY};
     my $line_pos;
-    if (($y_ref->[$inx+1]-$y_ref->[$inx])/2+$y_ref->[$inx] > $y) {
+    if (!defined $y_ref->[$inx+1] ||
+	($y_ref->[$inx+1]-$y_ref->[$inx])/2+$y_ref->[$inx] > $y) {
 	$line_pos = $y_ref->[$inx];
 	$top->{After} = $inx;
     } else {
@@ -297,7 +298,7 @@ sub myDrag
  my $Y  = $e->Y;
  $token = $token->toplevel;
  $token->MoveToplevelWindow($X+Tk::DragDrop::OFFSET,$Y+Tk::DragDrop::OFFSET);
- $token->FindSite($X,$Y,$e);
+# $token->FindSite($X,$Y,$e);
 }
 
 sub canvas_AutoScan
