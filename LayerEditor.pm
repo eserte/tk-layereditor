@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditor.pm,v 1.7 2000/02/07 00:48:07 eserte Exp $
+# $Id: LayerEditor.pm,v 1.8 2000/02/14 23:05:06 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
@@ -41,7 +41,7 @@ sub Populate {
     $w->Advertise('canvas' => $c);
 
     $layereye = $w->Photo(-file => Tk::findINC("Tk", "layereye.gif"))
-      unless defined $layereye;
+	unless defined $layereye;
 
     my $dnd_source;
     $dnd_source = $c->DragDrop
@@ -49,6 +49,8 @@ sub Populate {
        -sitetypes => ['Local'],
        -startcommand => sub { StartDrag($dnd_source, $w) },
       );
+    $dnd_source->bind('<Any-KeyPress>' => [sub { Done($w) }]);
+
     $c->DropSite(-droptypes => ['Local'],
 		 -dropcommand => [sub { Drop($w, @_) }],
 		 -motioncommand => [ sub { Motion($w, @_) }]);
@@ -282,13 +284,20 @@ sub Motion {
 
 sub Drop {
     my $top = shift;
-    warn "@_";
+    #XXX warn "@_";
     my($x, $y) = ($_[1], $_[2]);
     my $c = $top->Subwidget('canvas');
     my $inx = get_item($c, $x, $y);
     $inx = $top->{After};
     $c->delete('bar');
     $top->reorder($top->{'DragItem'},$inx);
+}
+
+# cleanup after cancelling a drag/drop command
+sub Done {
+    my $top = shift;
+    my $c = $top->Subwidget('canvas');
+    $c->delete('bar');
 }
 
 sub get_item {
@@ -380,6 +389,9 @@ XXX
   - do not display any icons if first item has no Image attribute
   - split widget in DndHList and LayerEditor
   - check ok/apply/cancel methods
+
+  - change this module to Tk::LayerEditorCore and inherit Tk::LayerEditor
+    (frame version) and Tk::LayerEditorToplevel (this version)
 
 =head1 AUTHOR
 
