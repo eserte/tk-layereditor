@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditorCore.pm,v 1.3 2000/04/29 11:41:52 eserte Exp $
+# $Id: LayerEditorCore.pm,v 1.4 2001/12/04 22:05:26 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
@@ -31,6 +31,8 @@ sub CommonPopulate {
 			 -width => "4c",
 			 -height => "6c",
 			 -takefocus => 0,
+			 -xscrollincrement => 5,
+			 -yscrollincrement => 5,
 			)->pack(-expand => 1, -fill => 'both');
     $c->afterIdle(sub { $c->configure(-background => 'white') });
     $w->Advertise('canvas' => $c);
@@ -44,15 +46,41 @@ sub CommonPopulate {
        -sitetypes => ['Local'],
        -startcommand => sub { StartDrag($dnd_source, $w) },
       );
+    $dnd_source->bindtags([$dnd_source, ref $dnd_source, ".", "all"]);
     $dnd_source->bind('<Any-KeyPress>' => [sub { Done($w) }]);
+    $dnd_source->bind('<Any-Motion>',sub { myDrag($dnd_source) });
 
     $c->DropSite(-droptypes => ['Local'],
 		 -dropcommand => [sub { Drop($w, @_) }],
 		 -motioncommand => [ sub { Motion($w, @_) }]);
 
     $c->bind('layeronoff', '<ButtonPress-1>' => sub { toggle_visibility($w) });
+    foreach (qw(layeronfoff layeritem)) {
+	$c->bind($_, '<Any-Enter>' => [$w, '_hand_cursor_on']);
+	$c->bind($_, '<Any-Leave>' => [$w, '_hand_cursor_off']);
+    }
+
 #XXX    $c->Tk::bind('<B1-Motion>' => sub { $w->check_autoscroll });
 
+}
+
+sub CommonConfigSpecs {
+    (-visibilitychange  => ['CALLBACK',undef,undef,undef],
+     -orderchange       => ['CALLBACK',undef,undef,undef],
+    );
+}
+
+sub _hand_cursor_on {
+    my $w = shift;
+    my $c = $w->Subwidget("canvas");
+    $w->{OrigCursor} = $c->cget(-cursor);
+    $c->configure(-cursor => "hand2");
+}
+
+sub _hand_cursor_off {
+    my $w = shift;
+    my $c = $w->Subwidget("canvas");
+    $c->configure(-cursor => $w->{OrigCursor});
 }
 
 sub reorder {
@@ -148,8 +176,8 @@ sub StartDrag {
     my $w = $token->parent;
     delete $token->{'XY'};
     my $e = $w->XEvent;
-    my $X = $e->X;
-    my $Y = $e->Y;
+    my $X = $w->canvasx($e->X);
+    my $Y = $w->canvasy($e->Y);
     my(@t) = $w->gettags('current');
     return 1 if (!@t || $t[0] ne 'layeritem' || $t[1] !~ /^layeritem-(\d+)/);
     my $inx = $1;
@@ -170,7 +198,8 @@ sub Motion {
     my $top = shift;
     my($x, $y) = @_;
     my $c = $top->Subwidget('canvas');
-    my $inx = get_item($c, $x, $y);
+    ($x, $y) = ($c->canvasx($x), $c->canvasy($y));
+    my $inx = get_item($top, $c, $y);
     return unless defined $inx;
     my $y_ref = $top->{ItemsY};
     my $line_pos;
@@ -183,6 +212,34 @@ sub Motion {
     }
     $c->delete('bar');
     $c->createLine(0, $line_pos-2, 100, $line_pos-2, -tags => 'bar');
+
+    return if $c->{ScrollLock};
+
+    my $set_scroll_lock = sub {
+	$c->{ScrollLock} = $c->after
+	    (100, sub { undef $c->{ScrollLock} });
+    };
+
+    my $real_c = $c->Subwidget("canvas");
+    my $real_canvas_width  = $real_c->width;
+    my $real_canvas_height = $real_c->height;
+    my $pad = 10;
+    if ($x < $pad && $c->canvasx(0) >= 5) {
+	$c->xview(scroll => -1, 'units');
+	$set_scroll_lock->();
+    }
+    if ($y < $pad && $c->canvasy(0) >= 5) {
+	$c->yview(scroll => -1, 'units');
+	$set_scroll_lock->();
+    }
+    if ($x > $real_canvas_width-$pad) {
+	$c->xview(scroll => +1, 'units');
+	$set_scroll_lock->();
+    }
+    if ($y > $real_canvas_height-$pad) {
+	$c->yview(scroll => +1, 'units');
+	$set_scroll_lock->();
+    }
 }
 
 sub Drop {
@@ -190,7 +247,7 @@ sub Drop {
     #XXX warn "@_";
     my($x, $y) = ($_[1], $_[2]);
     my $c = $top->Subwidget('canvas');
-    my $inx = get_item($c, $x, $y);
+    my $inx = get_item($top, $c, $c->canvasy($y));
     $inx = $top->{After};
     $c->delete('bar');
     $top->reorder($top->{'DragItem'},$inx);
@@ -204,23 +261,20 @@ sub Done {
 }
 
 sub get_item {
-    my($c, $x, $y, $itemname) = @_;
-    $itemname = "layeritem" unless defined $itemname;
-    my $id = $c->find('closest', $x, $y);
-    return unless defined $id;
-    my(@tags) = $c->gettags($id);
-    return unless (@tags && $tags[0] eq $itemname &&
-		   $tags[1] =~ /^$itemname-(\d+)/);
-    my $inx = $1;
-    return $inx;
+    my($top, $c, $y) = @_;
+    for(my $i=0; $i < @{$top->{ItemsY}}; $i++) {
+	if ($top->{ItemsY}[$i] > $y) {
+	    return ($i>1 ? $i-1 : 0);
+	}
+    }
+    return $#{$top->{ItemsY}};
 }
 
 sub toggle_visibility {
     my $w = shift;
     my $c = $w->Subwidget('canvas')->Subwidget('canvas');
     my $e = $c->XEvent;
-    my($x, $y) = ($e->x, $e->y);
-    my($idx) = get_item($c, $x, $y, 'layeronoff');
+    my($idx) = get_item($w, $c, $c->canvasy($e->y));
     return if !defined $idx;
     if ($w->{Items}[$idx]{'Visible'}) {
 	$c->raise("layeroff-$idx", "layeron-$idx")
@@ -232,6 +286,47 @@ sub toggle_visibility {
 		 $w,
 		 $w->{Items}[$idx]{'Data'},
 		 $w->{Items}[$idx]{'Visible'});
+}
+
+sub myDrag
+{
+ my $token = shift;
+ my $e = $token->XEvent;
+ my $X  = $e->X;
+ my $Y  = $e->Y;
+ $token = $token->toplevel;
+ $token->MoveToplevelWindow($X+Tk::DragDrop::OFFSET,$Y+Tk::DragDrop::OFFSET);
+ $token->FindSite($X,$Y,$e);
+}
+
+sub canvas_AutoScan
+{
+ my $w = shift;
+ my $c = $w->Subwidget('canvas');
+ my $x = shift;
+ my $y = shift;
+ if ($y >= $c->height)
+  {
+   $c->yview('scroll',1,'units')
+  }
+ elsif ($y < 0)
+  {
+   $c->yview('scroll',-1,'units')
+  }
+ elsif ($x >= $c->width)
+  {
+   $c->xview('scroll',2,'units')
+  }
+ elsif ($x < 0)
+  {
+   $c->xview('scroll',-2,'units')
+  }
+ else
+  {
+   return;
+  }
+ $w->Motion($c->canvasx($x), $c->canvasy($y));
+ $w->RepeatId($w->after(50,'AutoScan',$w,$x,$y));
 }
 
 # XXX implement!
