@@ -1,0 +1,15 @@
+Tk::LayerEditor Module
+
+Tk::LayerEditor is a widget similar to the layer dialog in The Gimp or
+Photoshop. It can be used to drag layers up and down and to turn
+visibility on and off. See examples/bbbike.pl for an example for this
+widget.
+
+To install, type
+
+	$ perl Makefile.PL
+	$ make
+	$ make test
+	$ make install
+
+Send bug reports, comments and suggestions to eserte@cs.tu-berlin.de
