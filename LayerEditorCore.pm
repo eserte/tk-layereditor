@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditorCore.pm,v 1.6 2001/12/04 22:11:11 eserte Exp $
+# $Id: LayerEditorCore.pm,v 1.7 2001/12/04 22:18:40 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
@@ -298,38 +298,42 @@ sub myDrag
  my $Y  = $e->Y;
  $token = $token->toplevel;
  $token->MoveToplevelWindow($X+Tk::DragDrop::OFFSET,$Y+Tk::DragDrop::OFFSET);
-# $token->FindSite($X,$Y,$e);
+#XXX nyi
+#   my $p = $token->parent;
+#   if ($Y < $p->rooty) {
+#       canvas_AutoScan($p,$X,$Y);
+#   }
 }
 
-sub canvas_AutoScan
-{
- my $w = shift;
- my $c = $w->Subwidget('canvas');
- my $x = shift;
- my $y = shift;
- if ($y >= $c->height)
-  {
-   $c->yview('scroll',1,'units')
-  }
- elsif ($y < 0)
-  {
-   $c->yview('scroll',-1,'units')
-  }
- elsif ($x >= $c->width)
-  {
-   $c->xview('scroll',2,'units')
-  }
- elsif ($x < 0)
-  {
-   $c->xview('scroll',-2,'units')
-  }
- else
-  {
-   return;
-  }
- $w->Motion($c->canvasx($x), $c->canvasy($y));
- $w->RepeatId($w->after(50,'AutoScan',$w,$x,$y));
-}
+### nyi
+#  sub canvas_AutoScan
+#  {
+#   my $c = shift;
+#   my $x = shift;
+#   my $y = shift;
+#   if ($y >= $c->height)
+#    {
+#     $c->yview('scroll',1,'units')
+#    }
+#   elsif ($y < 0)
+#    {
+#     $c->yview('scroll',-1,'units')
+#    }
+#   elsif ($x >= $c->width)
+#    {
+#     $c->xview('scroll',2,'units')
+#    }
+#   elsif ($x < 0)
+#    {
+#     $c->xview('scroll',-2,'units')
+#    }
+#   else
+#    {
+#     return;
+#    }
+#   $c->parent->Motion($c->canvasx($x), $c->canvasy($y));
+#   $c->RepeatId($c->after(50,sub{canvas_AutoScan($c,$x,$y)}));
+#  }
 
 # XXX implement!
 #  sub check_autoscroll {
