@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditor.pm,v 1.2 1999/06/09 00:43:29 eserte Exp $
+# $Id: LayerEditor.pm,v 1.3 1999/06/29 00:10:17 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999 Slaven Rezic. All rights reserved.
@@ -49,7 +49,7 @@ sub Populate {
     $c->afterIdle(sub { $c->configure(-background => 'white') });
     $w->Advertise('canvas' => $c);
 
-    $layereye = $w->Photo(-file => Tk::findINC("layereye.gif"))
+    $layereye = $w->Photo(-file => Tk::findINC("Tk", "layereye.gif"))
       unless defined $layereye;
 
     my $dnd_source;
@@ -72,19 +72,33 @@ sub Populate {
 				    -expand => 1,
 				    -fill => 'x'
 				   );
-    $f->Button(-command => [$w, 'Übernehmen'],
-	       -text => 'Apply')->pack(-side => 'left',
+    $f->Button(-command => [$w, 'Apply'],
+	       -text => 'Übernehmen')->pack(-side => 'left',
 				       -expand => 1,
 				       -fill => 'x');
-    $f->Button(-command => [$w, 'Abbrechen'],
-	       -text => 'Cancel')->pack(-side => 'left',
+    $f->Button(-command => [$w, 'Cancel'],
+	       -text => 'Abbrechen')->pack(-side => 'left',
 					-expand => 1,
 					-fill => 'x');
     $w->ConfigSpecs
       (
        -visibilitychange  => ['CALLBACK',undef,undef,undef],
        -orderchange       => ['CALLBACK',undef,undef,undef],
+       -transient         => ['METHOD',undef,undef,undef],
       );
+}
+
+sub transient {
+    my($w) = shift;
+    my $ret;
+    if (@_) {
+	if ($_[0]) {
+	    $ret = $w->SUPER::transient($_[0]);
+	} else {
+	    $ret = $w->SUPER::transient;
+	}
+    }
+    $ret;
 }
 
 sub reorder {
