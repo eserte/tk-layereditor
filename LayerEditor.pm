@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditor.pm,v 1.1 1999/06/09 00:04:56 eserte Exp $
+# $Id: LayerEditor.pm,v 1.2 1999/06/09 00:43:29 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999 Slaven Rezic. All rights reserved.
@@ -11,6 +11,16 @@
 # Mail: eserte@cs.tu-berlin.de
 # WWW:  http://user.cs.tu-berlin.de/~eserte/
 #
+
+# XXX zentrieren der Icons
+# XXX bar etwas weiter nach unten versetzen
+# XXX autoscroll, falls die liste zu groß wird
+# XXX binding für rechte maustaste
+# XXX evtl. OK/Apply/Cancel entfernen. Bzw. höchstens Close lassen
+# XXX veröffentlichen???
+# XXX Visible an Tie::* hängen, damit es auch funktioniert, wenn ich
+#     von außen die Visibility ändere
+#     Oder eine Methode dafür einführen.
 
 package Tk::LayerEditor;
 
@@ -39,14 +49,16 @@ sub Populate {
     $c->afterIdle(sub { $c->configure(-background => 'white') });
     $w->Advertise('canvas' => $c);
 
-    $layereye = $w->Photo(-file => "/home/e/eserte/src/bbbike/miscsrc/layereye.gif") unless defined $layereye;
+    $layereye = $w->Photo(-file => Tk::findINC("layereye.gif"))
+      unless defined $layereye;
 
     my $dnd_source;
     $dnd_source = $c->DragDrop
       (-event => '<B1-Motion>',
        -sitetypes => ['Local'],
        -startcommand => sub { StartDrag($dnd_source, $w) },
-       -handlers => [[sub { warn "@_" }], [-type => 'FILE_NAME', [sub { warn "@_" }]]]);
+#       -handlers => [[sub { warn "@_" }], [-type => 'FILE_NAME', [sub { warn "@_" }]]]
+      );
     $c->DropSite(-droptypes => ['Local'],
 		 -dropcommand => [sub { Drop($w, @_) }],
 		 -motioncommand => [ sub { Motion($w, @_) }]);
@@ -77,7 +89,6 @@ sub Populate {
 
 sub reorder {
     my($w, $elem, $newpos) = @_;
-warn "@_";
     my $swap_elem = $w->{Items}[$elem];
     splice @{$w->{Items}}, $elem, 1;
     if ($elem < $newpos) {
@@ -252,6 +263,15 @@ sub toggle_visibility {
 }
 
 sub _max { ($_[0] > $_[1] ? $_[0] : $_[1]) }
+
+sub get_order {
+    my $w = shift;
+    my @res;
+    foreach (@{$w->{Items}}) {
+	push @res, $_->{Def};
+    }
+    @res;
+}
 
 1;
 
