@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: bbbike.pl,v 1.2 2000/02/14 23:30:56 eserte Exp $
+# $Id: bbbike.pl,v 1.3 2000/02/14 23:36:35 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2000 Slaven Rezic. All rights reserved.
@@ -14,7 +14,7 @@
 #
 
 use Tk 800.016; # canvas with dash patches
-use Tk::LayerEditor;
+use Tk::LayerEditorToplevel;
 use Tk::Pixmap;
 use FindBin;
 
