@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditorCore.pm,v 1.2 2000/02/14 23:37:03 eserte Exp $
+# $Id: LayerEditorCore.pm,v 1.3 2000/04/29 11:41:52 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
@@ -20,7 +20,7 @@ use vars qw($layereye $VERSION);
 use Tk::DragDrop;
 use Tk::DropSite;
 
-$VERSION = '0.11';
+$VERSION = '0.12';
 
 sub CommonPopulate {
     my($w, $args) = @_;
@@ -30,6 +30,7 @@ sub CommonPopulate {
 			 -bd => 2,
 			 -width => "4c",
 			 -height => "6c",
+			 -takefocus => 0,
 			)->pack(-expand => 1, -fill => 'both');
     $c->afterIdle(sub { $c->configure(-background => 'white') });
     $w->Advertise('canvas' => $c);
