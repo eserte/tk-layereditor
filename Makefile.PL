@@ -11,3 +11,11 @@ Tk::MMutil::TkExtMakefile(
 	'layereye.gif'   => '$(INST_LIBDIR)/layereye.gif',
        },
 );
+
+sub MY::postamble {
+	'
+demo :: pure_all
+	$(FULLPERL) -Mblib examples/bbbike.pl
+
+';
+}
