@@ -1,10 +1,10 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditorCore.pm,v 1.7 2001/12/04 22:18:40 eserte Exp $
+# $Id: LayerEditorCore.pm,v 1.8 2004/10/02 08:20:47 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
+# Copyright (C) 1999, 2000, 2004 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -19,6 +19,59 @@ use vars qw($layereye $VERSION);
 
 use Tk::DragDrop;
 use Tk::DropSite;
+
+{
+    package Tk::DragDrop;
+no strict 'refs';
+BEGIN {
+    if ($] < 5.006) {
+	$INC{"warnings.pm"} = 1;
+	*warnings::import = sub { };
+    }
+}
+no warnings 'redefine';
+sub Tk::DragDrop::StartDrag
+{
+ my $token = shift;
+ my $w     = $token->parent;
+#warn "$token $w <<<";
+ unless ($w->{'Dragging'})
+  {
+   my $e = $w->XEvent;
+   my $X = $e->X;
+   my $Y = $e->Y;
+#   my $was = $token->{'XY'};
+#     if ($was)
+#      {
+#       my $dx = $was->[0] - $X;
+#       my $dy = $was->[1] - $Y;
+#       if (sqrt($dx*$dx+$dy*$dy) > $token->cget('-delta'))
+#        {
+#         unless ($token->Callback('-startcommand',$token,$e))
+#          {
+#           delete $token->{'XY'};
+#           $w->{'Dragging'} = $token;
+#           $token->MoveToplevelWindow($X+OFFSET,$Y+OFFSET);
+#           $token->raise;
+#           $token->deiconify;
+#           $token->FindSite($X,$Y,$e);
+#          }
+#        }
+#      }
+#     else
+#      {
+#     $token->{'XY'} = [$X,$Y];
+	unless ($token->Callback('-startcommand',$token,$e)) {
+     $w->{'Dragging'} = $token;
+     $token->MoveToplevelWindow($X+OFFSET,$Y+OFFSET);
+     $token->raise;
+     $token->deiconify;
+     $token->FindSite($X,$Y,$e);
+ }
+#    }
+  }
+}
+}
 
 $VERSION = '0.12';
 
@@ -42,7 +95,7 @@ sub CommonPopulate {
 
     my $dnd_source;
     $dnd_source = $c->DragDrop
-      (-event => '<B1-Motion>',
+      (-event => '<ButtonPress-1>',
        -sitetypes => ['Local'],
        -startcommand => sub { StartDrag($dnd_source, $w) },
       );
@@ -173,6 +226,7 @@ sub add {
 sub StartDrag {
     my $token = shift;
     my $top = shift;
+#warn "start drag $token $top";
     my $w = $token->parent;
     delete $token->{'XY'};
     my $e = $w->XEvent;
@@ -299,41 +353,48 @@ sub myDrag
  $token = $token->toplevel;
  $token->MoveToplevelWindow($X+Tk::DragDrop::OFFSET,$Y+Tk::DragDrop::OFFSET);
 #XXX nyi
-#   my $p = $token->parent;
-#   if ($Y < $p->rooty) {
-#       canvas_AutoScan($p,$X,$Y);
-#   }
+ my $c = $token->parent;
+ if ($Y < $c->rooty || $Y > $c->rooty+$c->height) {
+     my $p = $c;
+     while(ref($p) !~ /^Tk::LayerEditor/) {
+	 die "Can't find LayerEditor parent" if $p->isa("Tk::Toplevel");
+	 die "\$p is undef" if !$p;
+	 $p = $p->parent;
+     }
+     canvas_AutoScan($c,$p,$X,$Y);
+ }
 }
 
 ### nyi
-#  sub canvas_AutoScan
-#  {
-#   my $c = shift;
-#   my $x = shift;
-#   my $y = shift;
-#   if ($y >= $c->height)
-#    {
-#     $c->yview('scroll',1,'units')
-#    }
-#   elsif ($y < 0)
-#    {
-#     $c->yview('scroll',-1,'units')
-#    }
-#   elsif ($x >= $c->width)
-#    {
-#     $c->xview('scroll',2,'units')
-#    }
-#   elsif ($x < 0)
-#    {
-#     $c->xview('scroll',-2,'units')
-#    }
-#   else
-#    {
-#     return;
-#    }
-#   $c->parent->Motion($c->canvasx($x), $c->canvasy($y));
-#   $c->RepeatId($c->after(50,sub{canvas_AutoScan($c,$x,$y)}));
-#  }
+sub canvas_AutoScan
+{
+ my $c = shift;
+ my $p = shift;
+ my $x = shift;
+ my $y = shift;
+ if ($y >= $c->rooty + $c->height)
+  {
+   $c->yview('scroll',1,'units')
+  }
+ elsif ($y < $c->rooty)
+  {
+   $c->yview('scroll',-1,'units')
+  }
+ elsif ($x >= $c->rootx + $c->width)
+  {
+   $c->xview('scroll',2,'units')
+  }
+ elsif ($x < $c->rooty)
+  {
+   $c->xview('scroll',-2,'units')
+  }
+ else
+  {
+   return;
+  }
+ $p->Motion($c->canvasx($x), $c->canvasy($y));
+ $c->RepeatId($c->after(50,sub{canvas_AutoScan($c,$p,$x,$y)}));
+}
 
 # XXX implement!
 #  sub check_autoscroll {
