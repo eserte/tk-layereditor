@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditor.pm,v 1.6 2000/02/07 00:12:47 eserte Exp $
+# $Id: LayerEditor.pm,v 1.7 2000/02/07 00:48:07 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
@@ -23,7 +23,7 @@ use Tk::DropSite;
 
 @ISA = qw(Tk::Toplevel);
 Construct Tk::Widget 'LayerEditor';
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 sub Populate {
     my($w, $args) = @_;
@@ -48,13 +48,13 @@ sub Populate {
       (-event => '<B1-Motion>',
        -sitetypes => ['Local'],
        -startcommand => sub { StartDrag($dnd_source, $w) },
-#       -handlers => [[sub { warn "@_" }], [-type => 'FILE_NAME', [sub { warn "@_" }]]]
       );
     $c->DropSite(-droptypes => ['Local'],
 		 -dropcommand => [sub { Drop($w, @_) }],
 		 -motioncommand => [ sub { Motion($w, @_) }]);
 
     $c->bind('layeronoff', '<ButtonPress-1>' => sub { toggle_visibility($w) });
+#XXX    $c->Tk::bind('<B1-Motion>' => sub { $w->check_autoscroll });
 
     if (delete $args->{'buttons'}) {
 	my $o_b = $f->Button(-command => [$w, 'OK'],
@@ -215,7 +215,7 @@ sub add {
     }
     $max_width = $max_width + $txt_width + 2;
     $c->configure(-scrollregion => [0,0,$max_width,$y]);
-#XXX    $c->bind('layeritem', '<ButtonPress-1>' => [\&MoveLayer, $c]);
+#XXX what's that?    $c->bind('layeritem', '<ButtonPress-1>' => [\&MoveLayer, $c]);
     $w->{'ItemsY'} = \@y;
     $w->{'ItemsImage'} = \@p;
     $w->{'Items'} = \@elem;
@@ -277,7 +277,7 @@ sub Motion {
 	$top->{After} = $inx+1;
     }
     $c->delete('bar');
-    $c->createLine(0,$line_pos, 100, $line_pos, -tags => 'bar');
+    $c->createLine(0, $line_pos-2, 100, $line_pos-2, -tags => 'bar');
 }
 
 sub Drop {
@@ -286,9 +286,7 @@ sub Drop {
     my($x, $y) = ($_[1], $_[2]);
     my $c = $top->Subwidget('canvas');
     my $inx = get_item($c, $x, $y);
-    if (!defined $inx) {
-	$inx = $top->{After};
-    }
+    $inx = $top->{After};
     $c->delete('bar');
     $top->reorder($top->{'DragItem'},$inx);
 }
@@ -297,7 +295,7 @@ sub get_item {
     my($c, $x, $y, $itemname) = @_;
     $itemname = "layeritem" unless defined $itemname;
     my $id = $c->find('closest', $x, $y);
-    return unless defined $id; # XXX or ''
+    return unless defined $id;
     my(@tags) = $c->gettags($id);
     return unless (@tags && $tags[0] eq $itemname &&
 		   $tags[1] =~ /^$itemname-(\d+)/);
@@ -320,22 +318,27 @@ sub toggle_visibility {
     $w->{Items}[$idx]{'Visible'} = !$w->{Items}[$idx]{'Visible'};
     $w->Callback(-visibilitychange,
 		 $w,
-#		 $w->{Items}[$idx]{'Def'},
 		 $w->{Items}[$idx]{'Data'},
 		 $w->{Items}[$idx]{'Visible'});
 }
 
-sub _max { ($_[0] > $_[1] ? $_[0] : $_[1]) }
-
-#XXX
-#  sub get_order {
+# XXX implement!
+#  sub check_autoscroll {
 #      my $w = shift;
-#      my @res;
-#      foreach (@{$w->{Items}}) {
-#  	push @res, $_->{Def};
+
+#      $w->{Autoscroll} = $w->repeat(20, sub {
+#  				      my $e = $w->XEvent;
+#  				      warn $e->x, " " ,$e->y; 
+#  				  });
+
+#      if ($w->{Autoscroll}) {
+#  	$w->{Autoscroll}->cancel;
+#  	undef $w->{Autoscroll};
 #      }
-#      @res;
+
 #  }
+
+sub _max { ($_[0] > $_[1] ? $_[0] : $_[1]) }
 
 1;
 
