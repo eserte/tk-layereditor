@@ -5,6 +5,11 @@ Photoshop. It can be used to drag layers up and down and to turn
 visibility on and off. See examples/bbbike.pl for an example for this
 widget (requires Tk 800.016)
 
+This widget comes in two flavours: the Tk::LayerEditor is a plain
+widget derived from a frame, which can be embedded in own mainwindows
+or toplevels. The Tk::LayerEditorToplevel is a toplevel widget with
+optional buttons.
+
 There is no real POD yet, but hopefully in a future version.
 
 To install, type
