@@ -1,5 +1,7 @@
 Changes
 LayerEditor.pm
+LayerEditorCore.pm
+LayerEditorToplevel.pm
 MANIFEST
 Makefile.PL
 README
