@@ -1,26 +1,16 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditor.pm,v 1.5 1999/12/20 22:29:06 eserte Exp $
+# $Id: LayerEditor.pm,v 1.6 2000/02/07 00:12:47 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 1999 Slaven Rezic. All rights reserved.
+# Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
 # Mail: eserte@cs.tu-berlin.de
 # WWW:  http://user.cs.tu-berlin.de/~eserte/
 #
-
-# XXX zentrieren der Icons
-# XXX bar etwas weiter nach unten versetzen
-# XXX autoscroll, falls die liste zu groß wird
-# XXX binding für rechte maustaste
-# XXX evtl. OK/Apply/Cancel entfernen. Bzw. höchstens Close lassen
-# XXX veröffentlichen???
-# XXX Visible an Tie::* hängen, damit es auch funktioniert, wenn ich
-#     von außen die Visibility ändere
-#     Oder eine Methode dafür einführen.
 
 package Tk::LayerEditor;
 
@@ -33,13 +23,12 @@ use Tk::DropSite;
 
 @ISA = qw(Tk::Toplevel);
 Construct Tk::Widget 'LayerEditor';
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 sub Populate {
     my($w, $args) = @_;
     $w->SUPER::Populate($args);
-    $w->title('Layer-Editor');
-    
+
     my $f = $w->Component('Frame' => 'buttons'
 			 )->pack(-fill => 'x', -side => "bottom");
     my $c = $w->Scrolled('Canvas', -scrollbars => 'osoe',
@@ -68,29 +57,41 @@ sub Populate {
     $c->bind('layeronoff', '<ButtonPress-1>' => sub { toggle_visibility($w) });
 
     if (delete $args->{'buttons'}) {
-	$f->Button(-command => [$w, 'OK'],
-		   -text => 'OK')->pack(-side => 'left',
-					-expand => 1,
-					-fill => 'x'
-					);
-	$f->Button(-command => [$w, 'Apply'],
-		   -text => 'Übernehmen')->pack(-side => 'left',
-						-expand => 1,
-						-fill => 'x');
-	$f->Button(-command => [$w, 'Cancel'],
-		   -text => 'Abbrechen')->pack(-side => 'left',
-					       -expand => 1,
-					       -fill => 'x');
+	my $o_b = $f->Button(-command => [$w, 'OK'],
+			    )->pack(-side => 'left',
+				    -expand => 1,
+				    -fill => 'x'
+				   );
+	$w->Advertise('ok' => $o_b);
+	my $a_b = $f->Button(-command => [$w, 'Apply'],
+			    )->pack(-side => 'left',
+				    -expand => 1,
+				    -fill => 'x');
+	$w->Advertise('apply' => $a_b);
+	my $c_b = $f->Button(-command => [$w, 'Cancel'],
+			    )->pack(-side => 'left',
+				    -expand => 1,
+				    -fill => 'x');
+	$w->Advertise('cancel' => $c_b);
     } else {
-	$f->Button(-command => [$w, 'destroy'],
-		   -text => 'Schließen')->pack(-fill => 'x');
+	my $c_b = $f->Button(-command => [$w, 'destroy'],
+			    )->pack(-fill => 'x');
+	$w->Advertise('close' => $c_b);
     }
 
     $w->ConfigSpecs
       (
        -visibilitychange  => ['CALLBACK',undef,undef,undef],
        -orderchange       => ['CALLBACK',undef,undef,undef],
+       -okcmd             => ['CALLBACK',undef,undef,undef],
+       -applycmd          => ['CALLBACK',undef,undef,undef],
+       -cancelcmd         => ['CALLBACK',undef,undef,undef],
        -transient         => ['METHOD',undef,undef,undef],
+       -title             => ['METHOD','title','Title','Layer editor'],
+       -oklabel           => ['METHOD','okLabel','OkLabel','OK'],
+       -applylabel        => ['METHOD','applyLabel','ApplyLabel','Apply'],
+       -cancellabel       => ['METHOD','cancelLabel','CancelLabel','Cancel'],
+       -closelabel        => ['METHOD','closeLabel','CloseLabel','Close'],
       );
 }
 
@@ -106,6 +107,32 @@ sub transient {
     }
     $ret;
 }
+
+sub title {
+    my($w) = shift;
+    if (@_) {
+	$w->Tk::Toplevel::title($_[0]);
+    } else {
+	$w->Tk::Toplevel::title;
+    }
+}
+
+sub _set_label {
+    my($w, $subwname, $val) = @_;
+    my $subw = $w->Subwidget($subwname);
+    if ($subw) {
+	if (defined $val) {
+	    $subw->configure(-text => $val);
+	} else {
+	    return $subw->cget(-text);
+	}
+    }
+}
+
+sub oklabel     { $_[0]->_set_label('ok',     $_[1]) }
+sub applylabel  { $_[0]->_set_label('apply',  $_[1]) }
+sub cancellabel { $_[0]->_set_label('cancel', $_[1]) }
+sub closelabel  { $_[0]->_set_label('close',  $_[1]) }
 
 sub reorder {
     my($w, $elem, $newpos) = @_;
@@ -132,7 +159,7 @@ sub add {
     my @p;
     my $i = 0;
     foreach my $e (@elem) {
-	my $p = $e->{'Photo'};
+	my $p = $e->{'Image'};
 	push @y, $y;
 	push @p, $p;
 	my $onid = $c->createImage
@@ -190,24 +217,24 @@ sub add {
     $c->configure(-scrollregion => [0,0,$max_width,$y]);
 #XXX    $c->bind('layeritem', '<ButtonPress-1>' => [\&MoveLayer, $c]);
     $w->{'ItemsY'} = \@y;
-    $w->{'ItemsPhoto'} = \@p;
+    $w->{'ItemsImage'} = \@p;
     $w->{'Items'} = \@elem;
 }
 
 
 sub OK {
     my $w = shift;
-    warn "$w OK";
+    $w->Call(-okcmd);
 }
 
 sub Apply {
     my $w = shift;
-    warn "$w apply";
+    $w->Call(-applycmd);
 }
 
 sub Cancel {
     my $w = shift;
-    warn "$w Cancel";
+    $w->Call(-cancelcmd);
 }
 
 sub StartDrag {
@@ -222,8 +249,8 @@ sub StartDrag {
     return 1 if (!@t || $t[0] ne 'layeritem' || $t[1] !~ /^layeritem-(\d+)/);
     my $inx = $1;
     $top->{'DragItem'} = $inx;
-    if ($top->{'ItemsPhoto'}[$inx]) {
-	$token->configure(-image => $top->{'ItemsPhoto'}[$inx]);
+    if ($top->{'ItemsImage'}[$inx]) {
+	$token->configure(-image => $top->{'ItemsImage'}[$inx]);
     } else {
 	$token->configure(-text => $top->{Items}[$inx]->{Text});
     }
@@ -251,7 +278,6 @@ sub Motion {
     }
     $c->delete('bar');
     $c->createLine(0,$line_pos, 100, $line_pos, -tags => 'bar');
-    
 }
 
 sub Drop {
@@ -265,7 +291,6 @@ sub Drop {
     }
     $c->delete('bar');
     $top->reorder($top->{'DragItem'},$inx);
-    
 }
 
 sub get_item {
@@ -294,21 +319,78 @@ sub toggle_visibility {
     }
     $w->{Items}[$idx]{'Visible'} = !$w->{Items}[$idx]{'Visible'};
     $w->Callback(-visibilitychange,
-		 $w->{Items}[$idx]{'Def'},
+		 $w,
+#		 $w->{Items}[$idx]{'Def'},
+		 $w->{Items}[$idx]{'Data'},
 		 $w->{Items}[$idx]{'Visible'});
 }
 
 sub _max { ($_[0] > $_[1] ? $_[0] : $_[1]) }
 
-sub get_order {
-    my $w = shift;
-    my @res;
-    foreach (@{$w->{Items}}) {
-	push @res, $_->{Def};
-    }
-    @res;
-}
+#XXX
+#  sub get_order {
+#      my $w = shift;
+#      my @res;
+#      foreach (@{$w->{Items}}) {
+#  	push @res, $_->{Def};
+#      }
+#      @res;
+#  }
 
 1;
 
 __END__
+
+=head1 NAME
+
+Tk::LayerEditor - a gimp-like layer dialog for changing layer attributes
+
+=head1 SYNOPSIS
+
+  use Tk;
+  use Tk::LayerEditor;
+  $top = new MainWindow;
+  $c = $top->Canvas->pack;
+  $le = $top->LayerEditor(...)->pack;
+  $le->add(...);
+
+=head1 DESCRIPTION
+
+XXX
+
+=head1 STANDARD OPTIONS
+
+=head1 WIDGET-SPECIFIC OPTIONS
+
+=head1 METHODS
+
+=head1 EXAMPLES
+
+=head1 BUGS/TODO
+
+  - center icons
+  - determine exact position of bar
+  - do autoscrolling if the list is too big
+  - bindings for right mouse click
+  - tie visibility with Tie::Watch
+  - do not display visibility image if first item has no Visible attribute
+  - do not display any icons if first item has no Image attribute
+  - split widget in DndHList and LayerEditor
+  - check ok/apply/cancel methods
+
+=head1 AUTHOR
+
+Slaven Rezic <eserte@cs.tu-berlin.de>
+
+=head1 COPYRIGHT
+
+Copyright (c) 1999, 2000 Slaven Rezic. All rights reserved.
+This module is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=head1 SEE ALSO
+
+Tk::Canvas(3), gimp(1).
+
+=cut
+
