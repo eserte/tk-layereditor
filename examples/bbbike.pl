@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: bbbike.pl,v 1.1 2000/02/06 23:53:47 eserte Exp $
+# $Id: bbbike.pl,v 1.2 2000/02/14 23:30:56 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2000 Slaven Rezic. All rights reserved.
@@ -71,7 +71,7 @@ sub restack {
 
 restack(@stack_order);
 
-my $le = $top->LayerEditor
+my $le = $top->LayerEditorToplevel
     (-title => 'Layer-Editor',
 
      -orderchange => sub {
