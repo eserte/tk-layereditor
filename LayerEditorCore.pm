@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditorCore.pm,v 1.8 2004/10/02 08:20:47 eserte Exp $
+# $Id: LayerEditorCore.pm,v 1.9 2004/10/02 18:17:27 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000, 2004 Slaven Rezic. All rights reserved.
@@ -26,7 +26,7 @@ no strict 'refs';
 BEGIN {
     if ($] < 5.006) {
 	$INC{"warnings.pm"} = 1;
-	*warnings::import = sub { };
+	*warnings::unimport = sub { };
     }
 }
 no warnings 'redefine';
