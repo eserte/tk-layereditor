@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditor.pm,v 1.4 1999/07/30 23:36:08 eserte Exp $
+# $Id: LayerEditor.pm,v 1.5 1999/12/20 22:29:06 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999 Slaven Rezic. All rights reserved.
@@ -225,7 +225,7 @@ sub StartDrag {
     if ($top->{'ItemsPhoto'}[$inx]) {
 	$token->configure(-image => $top->{'ItemsPhoto'}[$inx]);
     } else {
-	$token->configure(-text => $top->{Items}[$inx]);
+	$token->configure(-text => $top->{Items}[$inx]->{Text});
     }
     $w->{'Dragging'} = $token;
     $token->MoveToplevelWindow($X,$Y);
