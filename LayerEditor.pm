@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditor.pm,v 2.2 2000/02/14 23:36:57 eserte Exp $
+# $Id: LayerEditor.pm,v 2.3 2001/12/04 22:18:59 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
@@ -28,8 +28,7 @@ sub Populate {
 
     $w->ConfigSpecs
       (
-       -visibilitychange  => ['CALLBACK',undef,undef,undef],
-       -orderchange       => ['CALLBACK',undef,undef,undef],
+       $w->SUPER::CommonConfigSpecs(),
       );
 }
 
