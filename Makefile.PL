@@ -3,7 +3,7 @@ use Tk::Config;
 
 Tk::MMutil::TkExtMakefile(
     'NAME'	   => 'Tk::LayerEditor',
-    'VERSION_FROM' => 'LayerEditor.pm',
+    'VERSION_FROM' => 'LayerEditorCore.pm',
     'PM'           =>
        {'LayerEditor.pm' => '$(INST_LIBDIR)/LayerEditor.pm',
 	'LayerEditorCore.pm' => '$(INST_LIBDIR)/LayerEditorCore.pm',
