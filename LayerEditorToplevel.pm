@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditorToplevel.pm,v 1.1 2000/02/14 23:24:49 eserte Exp $
+# $Id: LayerEditorToplevel.pm,v 1.2 2000/02/14 23:36:52 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
@@ -15,8 +15,9 @@
 package Tk::LayerEditorToplevel;
 use Tk::Toplevel;
 use Tk::LayerEditorCore;
-use vars qw(@ISA);
+use vars qw(@ISA $VERSION);
 @ISA = qw(Tk::LayerEditorCore Tk::Toplevel);
+$VERSION =  $Tk::LayerEditorCore::VERSION;
 Construct Tk::Widget 'LayerEditorToplevel';
 
 sub Populate {

@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditor.pm,v 2.1 2000/02/14 23:25:22 eserte Exp $
+# $Id: LayerEditor.pm,v 2.2 2000/02/14 23:36:57 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ use Tk::Frame;
 use vars qw($VERSION @ISA);
 @ISA = qw(Tk::LayerEditorCore Tk::Frame);
 Construct Tk::Widget 'LayerEditor';
-$VERSION = '0.10';
+$VERSION = $Tk::LayerEditorCore::VERSION;
 
 sub Populate {
     my($w, $args) = @_;

@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditorCore.pm,v 1.1 2000/02/14 23:24:45 eserte Exp $
+# $Id: LayerEditorCore.pm,v 1.2 2000/02/14 23:37:03 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000 Slaven Rezic. All rights reserved.
@@ -15,15 +15,12 @@
 package Tk::LayerEditorCore;
 
 use strict;
-use vars qw($layereye);
+use vars qw($layereye $VERSION);
 
-#use Tk::Toplevel;
 use Tk::DragDrop;
 use Tk::DropSite;
 
-#@ISA = qw(Tk::Toplevel);
-#Construct Tk::Widget 'LayerEditor';
-#$VERSION = '0.03';
+$VERSION = '0.11';
 
 sub CommonPopulate {
     my($w, $args) = @_;
