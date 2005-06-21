@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditorCore.pm,v 1.9 2004/10/02 18:17:27 eserte Exp $
+# $Id: LayerEditorCore.pm,v 1.10 2005/06/21 21:07:24 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000, 2004 Slaven Rezic. All rights reserved.
@@ -301,7 +301,7 @@ sub Motion {
 sub Drop {
     my $top = shift;
     #XXX warn "@_";
-    my($x, $y) = ($_[1], $_[2]);
+    my($x, $y) = $Tk::VERSION >= 804 ? ($_[3], $_[4]) : ($_[1], $_[2]);
     my $c = $top->Subwidget('canvas');
     my $inx = get_item($top, $c, $c->canvasy($y));
     $inx = $top->{After};
