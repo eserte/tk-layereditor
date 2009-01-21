@@ -2,3 +2,6 @@
 \bMANIFEST.SKIP\b
 \bMakefile\b
 \bMakefile.old\b
+^blib/
+^Tk-LayerEditor.*\.tar\.gz$
+^pm_to_blib$
