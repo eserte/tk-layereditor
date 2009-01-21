@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: bbbike.pl,v 1.3 2000/02/14 23:36:35 eserte Exp $
+# $Id: bbbike.pl,v 1.4 2009/01/21 21:57:15 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2000 Slaven Rezic. All rights reserved.
@@ -13,34 +13,37 @@
 # WWW:  http://user.cs.tu-berlin.de/~eserte/
 #
 
+use strict;
+
 use Tk 800.016; # canvas with dash patches
 use Tk::LayerEditorToplevel;
 use Tk::Pixmap;
 use FindBin;
 
-$top = new MainWindow;
-$c = $top->Canvas(-width => 300,
-		  -height => 300)->pack(-fill => "both", -expand => 1);
+my $top = new MainWindow;
+my $c = $top->Canvas(-width => 300,
+		     -height => 300)->pack(-fill => "both", -expand => 1);
 
-my(@tags) = ('red', 'green', 'blue');
+my(@tags) = ('red', 'green', 'blue', 'brown');
 
-$ubahn_photo = $top->Pixmap(-file => "$FindBin::RealBin/ubahn.xpm");
-$sbahn_photo = $top->Pixmap(-file => "$FindBin::RealBin/sbahn.xpm");
-$rbahn_photo = $top->Pixmap(-file => "$FindBin::RealBin/rbahn.xpm");
+my $ubahn_photo = $top->Pixmap(-file => "$FindBin::RealBin/ubahn.xpm");
+my $sbahn_photo = $top->Pixmap(-file => "$FindBin::RealBin/sbahn.xpm");
+my $rbahn_photo = $top->Pixmap(-file => "$FindBin::RealBin/rbahn.xpm");
+my $ampel_photo = $top->Pixmap(-file => "$FindBin::RealBin/ampel_klein.xpm");
 
-foreach my $type (0 .. 2) {
-    foreach my $lines (1 .. 100) {
+foreach my $tag (@tags) {
+    foreach my $lines (1 .. 300/@tags) {
 	my($x1,$y1,$x2,$y2) = (int(rand(300)),
 			       int(rand(300)),
 			       int(rand(300)),
 			       int(rand(300)),);
 	$c->createLine($x1,$y1,$x2,$y2,
 		       -width => 3,
-		       -fill => $tags[$type], -tags => $tags[$type]);
+		       -fill => $tag, -tags => $tag);
     }
 }
 
-$u_visible = $s_visible = $r_visible = 1;
+my $u_visible = my $s_visible = my $r_visible = 1;
 
 my @elem = (
 	    {'Image'   => $ubahn_photo,
@@ -57,6 +60,11 @@ my @elem = (
 	     'Text'    => 'Regionabahn',
 	     'Visible' => $r_visible,
 	     'Data'    => 'red',
+	    },
+	    {'Image'   => $ampel_photo,
+	     'Text'    => 'Ampeln',
+	     'Visible' => $r_visible,
+	     'Data'    => 'brown',
 	    },
 	   );
 
