@@ -429,8 +429,8 @@ sub expand_to_visible {
     my $self = shift;
     my $c = $self->Subwidget("canvas");
     my @bbox = $c->bbox('all');
-    my $w = $bbox[2]-$bbox[0];
-    my $h = $bbox[3]-$bbox[1];
+    my $w = $c->cget('-borderwidth') + $bbox[2]-$bbox[0];
+    my $h = $c->cget('-borderwidth') + $bbox[3]-$bbox[1];
     if ($w > $c->Width) {
 	$c->configure(-width => $w);
     }
