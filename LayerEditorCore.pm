@@ -72,7 +72,7 @@ sub Tk::DragDrop::StartDrag
 }
 }
 
-$VERSION = '0.13';
+$VERSION = '0.14';
 
 sub CommonPopulate {
     my($w, $args) = @_;
@@ -424,6 +424,20 @@ sub canvas_AutoScan
 #      }
 
 #  }
+
+sub expand_to_visible {
+    my $self = shift;
+    my $c = $self->Subwidget("canvas");
+    my @bbox = $c->bbox('all');
+    my $w = $bbox[2]-$bbox[0];
+    my $h = $bbox[3]-$bbox[1];
+    if ($w > $c->Width) {
+	$c->configure(-width => $w);
+    }
+    if ($h > $c->Height) {
+	$c->configure(-height => $h);
+    }
+}
 
 sub _max { ($_[0] > $_[1] ? $_[0] : $_[1]) }
 
