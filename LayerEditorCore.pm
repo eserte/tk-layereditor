@@ -1,15 +1,14 @@
 # -*- perl -*-
 
 #
-# $Id: LayerEditorCore.pm,v 1.12 2009/01/21 21:56:47 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1999, 2000, 2004 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
-# Mail: eserte@cs.tu-berlin.de
-# WWW:  http://user.cs.tu-berlin.de/~eserte/
+# Mail: srezic@cpan.org
+# WWW:  http://www.rezic.de/
 #
 
 package Tk::LayerEditorCore;
