@@ -15,11 +15,18 @@
 use strict;
 
 use Tk 800.016; # canvas with dash patches
+use FindBin;
+use blib "$FindBin::RealBin/..";
 use Tk::LayerEditorToplevel;
 use Tk::Pixmap;
-use FindBin;
+use Getopt::Long;
 
 my $top = new MainWindow;
+
+my $big;
+GetOptions("big" => \$big)
+    or die "usage: $0 [x11 options] [-big]";
+
 my $c = $top->Canvas(-width => 300,
 		     -height => 300)->pack(-fill => "both", -expand => 1);
 
@@ -66,6 +73,9 @@ my @elem = (
 	     'Data'    => 'brown',
 	    },
 	   );
+if ($big) {
+    @elem = (@elem,@elem,@elem,@elem,@elem);
+}
 
 my(@stack_order) = ('blue', 'green', 'red');
 
@@ -94,6 +104,7 @@ my $le = $top->LayerEditorToplevel
      -transient => $top,
     );
 $le->add(@elem);
+$le->expand_to_visible;
 
 MainLoop;
 
