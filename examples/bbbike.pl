@@ -115,10 +115,9 @@ my $le = $top->LayerEditorToplevel
 $le->add(@elem);
 $le->expand_to_visible;
 
-my $le_canvas = $le->Subwidget('canvas')->Subwidget('canvas');
+my $le_canvas = $le->get_canvas;
 $le_canvas->Tk::bind('<Button-3>' => sub {
-    my $e = $le_canvas->XEvent;
-    my($idx) = $le->get_item($le_canvas, $le_canvas->canvasy($e->y));
+    my($idx) = $le->get_item_index;
     my @tags = grep { $_ ne 'current' } $le_canvas->gettags('current');
     if (@tags) {
 	$le_menu->{current_item_data} = join("\n",
