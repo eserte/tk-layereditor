@@ -23,4 +23,4 @@ The bbbike.pl test script can be invoked before installing with
 
         $ perl -Mblib examples/bbbike.pl
 
-Send bug reports, comments and suggestions to eserte@cs.tu-berlin.de
+Send bug reports, comments and suggestions to srezic@cpan.org
