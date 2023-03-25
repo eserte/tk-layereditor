@@ -4,12 +4,11 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2000 Slaven Rezic. All rights reserved.
+# Copyright (C) 2000,2023 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
 # Mail: srezic@cpan.org
-# WWW:  http://www.rezic.de/
 #
 
 use strict;
@@ -88,6 +87,16 @@ sub restack {
 
 restack(@stack_order);
 
+my $le_menu = $top->Menu(-tearoff => 0);
+$le_menu->add('command',
+	      -label => 'Show info',
+	      -command => sub {
+		  my $data = $le_menu->{current_item_data};
+		  $top->messageBox(-message => "Current selected entry has following data:\n$data",
+				   -icon => 'info');
+	      },
+	     );
+
 my $le = $top->LayerEditorToplevel
     (-title => 'Layer-Editor',
 
@@ -105,6 +114,22 @@ my $le = $top->LayerEditorToplevel
     );
 $le->add(@elem);
 $le->expand_to_visible;
+
+my $le_canvas = $le->Subwidget('canvas')->Subwidget('canvas');
+$le_canvas->Tk::bind('<Button-3>' => sub {
+    my $e = $le_canvas->XEvent;
+    my($idx) = $le->get_item($le_canvas, $le_canvas->canvasy($e->y));
+    my @tags = grep { $_ ne 'current' } $le_canvas->gettags('current');
+    if (@tags) {
+	$le_menu->{current_item_data} = join("\n",
+					     "Index: $idx",
+					     "Item Data: " . $le->{Items}[$idx]{Data},
+					     "Visible: " . ($le->{Items}[$idx]{Visible} ? "yes" : "no"),
+					     "Tags: " . join(" ", @tags),
+					    );
+	$le_menu->Popup(-popover => 'cursor', -popanchor => 'nw');
+    }
+});
 
 MainLoop;
 
