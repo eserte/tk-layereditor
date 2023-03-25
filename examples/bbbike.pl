@@ -130,6 +130,12 @@ $le_canvas->Tk::bind('<Button-3>' => sub {
     }
 });
 
+if ($ENV{BATCH}) {
+    my $sleep = 3;
+    print STDERR "Window will be closed after $sleep seconds...\n";
+    $top->after($sleep*1000, sub { $top->destroy });
+}
+
 MainLoop;
 
 __END__
