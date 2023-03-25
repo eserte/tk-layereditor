@@ -1,3 +1,8 @@
+^\.git/
+^\.gitignore$
+^\.prove$
+^MYMETA\.json$
+^MYMETA\.yml$
 \bRCS\b
 \bMANIFEST.SKIP\b
 \bMakefile\b

@@ -5,10 +5,10 @@ LayerEditorToplevel.pm
 MANIFEST
 Makefile.PL
 README
-test.pl
 layereye.gif
 examples/bbbike.pl
 examples/ubahn.xpm
 examples/sbahn.xpm
 examples/rbahn.xpm
 examples/ampel_klein.xpm
+t/basic.t
